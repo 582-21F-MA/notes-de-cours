@@ -95,6 +95,13 @@ Ci-dessus, l'objet affecté à la variable `bar` hérite des propriétés de
 partir de `bar`, même si ce dernier ne possède techniquement pas de
 telle propriété.
 
+Lorsqu'on tente d'accéder à une propriété qui n'existe pas sur un objet,
+JavaScript remonte la chaîne de prototypes afin de trouver la propriété
+sur l'objet parent (ou l'objet grand-parent, ou arrière-grand-parend, et
+ainsi de suite).
+
+![diagramme prototype](prototype.excalidraw.svg)
+
 Pour accéder au prototype d'un objet, on utilise la méthode
 `Object.getPrototypeOf`, laquelle retourne le prototype de l'objet
 donné.
