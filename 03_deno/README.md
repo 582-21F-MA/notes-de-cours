@@ -49,12 +49,15 @@ brew install deno
 ## Utilisation
 
 Pour exécuter un fichier JavaScript ou TypeScript avec Deno, il suffit
-d'exécuter la commande `deno run --check` suivie du chemin vers le
-fichier à exécuter. Pour exécuter un fichier de nouveau à chaque fois
-que celui-ci change, vous pouvez ajouter le drapeau `--watch`.
+d'exécuter la commande `deno run --check --allow-all` suivie du chemin
+vers le fichier à exécuter. L'option `--check` indique à Deno de valider
+le typage. L'option `--allow-all` permet à Deno d'effectuer des requêtes
+HTTP, ce qui sera nécessaire pour importer note cadre de test. Pour
+exécuter un fichier de nouveau à chaque fois que celui-ci change, vous
+pouvez ajouter le drapeau `--watch`.
 
 ```sh
-deno run --check --watch main.ts
+deno run --check --allow-all --watch main.ts
 ```
 
 Vous devriez également placer le fichier de configuration `deno.json`
