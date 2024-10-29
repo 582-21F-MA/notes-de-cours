@@ -39,3 +39,21 @@ Vous remarquerez que nous indiquons aussi le type du script comme étant
 Les scripts de type « module » ont aussi l'avantage d'être *différé*.
 C'est-à-dire que le navigateur exécutera ceux-ci seulement après
 l'analyse complète du document HTML.
+
+## Serveur
+
+Pour des raisons de sécurité, la plupart des navigateurs bloquent
+l'accès aux modules JavaScript si ceux-ci ne proviennent pas de réponses
+HTTP. Pour exécuter vos programmes dans le navigateur, il vous faudra
+donc démarrer au préalable un serveur HTTP.
+
+L'interface en ligne de commande de l'interpréteur PHP inclut un tel
+serveur de fichiers. Pour le lancer, il suffit d'exécuter la commande
+suivante à la racine de votre projet :
+
+```sh
+php -S localhost:8000
+```
+
+Si un message d'erreur quant au *port* s'affiche dans le terminal, vous
+pouvez changer celui-ci en modifiant le nombre après les deux-points.
