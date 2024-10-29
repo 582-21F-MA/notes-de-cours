@@ -206,3 +206,45 @@ const bodyChildElements = document.querySelectorAll("body > *"); // tous les enf
 console.log(bodyChilElements); // => NodeList [<h1>, <p>]
 ```
 
+### Assertions de type
+
+Les méthodes natives `querySelector` et `querySelectorAll` retournent
+une valeur dont il est impossible pour TypeScript de vérifier le type.
+
+Considérons par exemple le code ci-dessous.
+
+```ts
+const node = document.querySelector("#name");
+```
+
+La valeur de la constante `node` est soit de type `Element`, soit de
+type `null` (si aucun élément ne possède l'identifiant `name`). Il est
+impossible de savoir lequel de ces deux type ce sera *avant* d'exécuter
+le programme. Par conséquent, lorsque on utilisera `node`, notre code
+devra absolument prendre en considération ces deux possibilités. Sinon,
+le vérificateur de type émettra une erreur.
+
+```ts
+node.textContent = "Test"; // node is possibly null.
+```
+
+Puisque `node` est possiblement `null`, on ne peut pas accéder à la
+propriété `textContent` car celle-ci n'existe pas sur les valeurs de
+type `null`.
+
+Dans cette situation, si on connait avec certitude le type de la valeur
+de retour de `querySelector`, on utilisera le mot clé `as` afin
+d'assurer au vérificateur que la valeur de retour est bel et bien d'un
+type en particulier.
+
+```ts
+const node = document.querySelector("#name") as HTMLParagraphElement;
+```
+
+Vous trouverez sur [MDN][HTML element interfaces] une liste des types
+représentant les divers éléments HTML. Quoique techniquement tous les
+éléments HTML sont de type `HTMLElement`, il est important que vos
+annotations soient aussi précises que possible.
+
+[HTML element interfaces]:
+    https://developer.mozilla.org/en-US/docs/Web/API/HTML_DOM_API#html_element_interfaces_2
