@@ -11,6 +11,12 @@ nullité (`null`) et la valeur indéfinie (`undefined`) font également
 partie des types primitifs. Toutes les valeurs de type primitif sont
 immuable, c'est-à-dire qu'on ne peut pas les modifier.
 
+Pour en savoir plus sur les primitifs, vous pouvez vous référez à
+l'[article MDN sur les valeurs primitives][valeurs primitives].
+
+
+[valeurs primitives]: https://developer.mozilla.org/fr/docs/Web/JavaScript/Data_structures#les_valeurs_primitives
+
 ### Nombres
 
 Le type `number` est utilisé pour représenter les nombres entiers et les
