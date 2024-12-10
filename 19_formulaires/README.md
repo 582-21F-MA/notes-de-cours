@@ -91,17 +91,18 @@ contient au moins une majuscule et un chiffre, etc.
 
 Il y a deux types de validation de données sur le web : 
 
-La validation côté client est la validation effectuée dans le
-navigateur, avant que les données soient envoyées au serveur. On
-considère parfois ce type de validation comme étant plus conviviale car
-elle donne de la rétroaction instantanément et de façon plus granulaire.
+-   La validation côté client est la validation effectuée dans le
+    navigateur, avant que les données soient envoyées au serveur. On
+    considère parfois ce type de validation comme étant plus conviviale
+    car elle donne de la rétroaction instantanément et de façon plus
+    granulaire.
 
-La validation côté serveur est la validation opérée par le serveur après
-que les données aillent été soumises, mais avant que celles-ci soient
-sauvegardées dans une base de données. Si les données sont erronées, le
-serveur envoie une réponse avec un code d'erreur au client. La réponse
-du serveur prend généralement la forme du même formulaire, plus des
-messages indiquant les erreurs à corriger.
+-   La validation côté serveur est la validation opérée par le serveur
+    après que les données aillent été soumises, mais avant que celles-ci
+    soient sauvegardées dans une base de données. Si les données sont
+    erronées, le serveur envoie une réponse avec un code d'erreur au
+    client. La réponse du serveur prend généralement la forme du même
+    formulaire, plus des messages indiquant les erreurs à corriger.
 
 Techniquement, la validation côté client est facultative, tandis que
 celle côté serveur est indispensable. Il est assez facile de contourner
@@ -145,20 +146,115 @@ Les objets JavaScript qui représentent les contrôles d'un formulaire
 possèdent des [propriétés][API validation] liées à la validation
 intégrée. Ces propriétés permettent de gérer la validation de formulaire
 en JavaScript, et donc de personnaliser davantage la rétroaction faite à
-l'utilisateur ou l'utilisatrice.
+l'utilisateur ou l'utilisatrice. Vous trouverez ci-dessous des exemples
+pour certaines propriétés souvent utilisées.
+
+#### novalidate
 
 Pour personnaliser l'affichage des messages d'erreur avec JavaScript, on
-doit souvent désactivé la validation faite par le navigateur. Pour ce
-faire, on ajoute l'attribut `novalidate` au formulaire. Ajoutez
-toujours cet attribut à l'aide de JavaScript, et non directement dans le
-document HTML. De cette façon, si JavaScript est indisponible, les
-utilisateur·rices auront tout de même accès aux messages d'erreur du
+doit souvent désactiver la validation faite par le navigateur. Pour ce
+faire, on ajoute l'attribut `novalidate` au formulaire. 
+
+```ts
+form.novalidate = true;
+```
+
+Ajoutez toujours cet attribut à l'aide de JavaScript, et non directement
+dans le document HTML. De cette façon, si JavaScript est indisponible,
+les utilisateur·rices auront tout de même accès aux messages d'erreur du
 navigateur.
 
-Enfin, si vous affichez dynamiquement des messages d'erreur,
+[API validation]:
+https://developer.mozilla.org/fr/docs/Learn/Forms/Form_validation#api_de_contraintes_de_validation_html5
+
+#### checkValidity
+
+La méthode `checkValidity` est disponible sur les contrôles ainsi que
+sur les formulaires. Lorsqu'elle est appelée sur un contrôle, elle
+retourne un booléen qui indique si la valeur du contrôle satisfait
+présentement les contraintes de validation.
+
+```html
+<form>
+    <label>
+        Courriel
+        <input type="password" value="abc" minlength="8" required />
+    </label>
+</form>
+```
+
+```ts
+const input = document.querySelector("input") as HTMLInputElement;
+const isValid = input.checkValidity();
+console.log(isValid); // => false
+```
+
+Le contrôle ci-dessus, par exemple, est présentement invalide puisque sa
+valeur (`abc`) ne contient pas un minimum de 8 caractères, comme l'exige
+l'attribut `minlength`.
+
+Si `checkValidity` est appelé sur un formulaire, le booléen indique si
+tous les contrôles du formulaire satisfont leurs contraintes de
+validation.
+
+```ts
+const form = document.querySelector("form") as HTMLFormElement;
+const isValid = form.checkValidity();
+console.log(isValid); // => false
+```
+
+Dans les deux cas, les contrôles invalides lancent un événement
+`invalid` qui peut être utilisé pour donner de la rétroaction à
+l'utilisateur ou l'utilisatrice. Le gestionnaire d'événement ci-dessous,
+par exemple, affiche une alerte lorsque l'événement `invalid` se
+produit.
+
+```ts
+input.addEventListener("invalid", () => {
+    alert("Mot de pass invalide");
+});
+```
+
+> [!NOTE]
+> Les événements `invalid` ne se propagent pas. On devra donc
+> enregistrer des gestionnaires d'événement séparés sur tous les
+> contrôles.
+
+#### setCustomValidity
+
+La méthode `setCustomValidity` permet de spécifier la validité d'un
+contrôle. Elle prend comme argument une chaîne de caractère, laquelle
+sera utilisée comme message d'erreur. Si la chaîne est vide, alors la
+valeur du contrôle est considérée comme étant valide.
+
+```ts
+input.addEventListener("input", () => {
+    const hasSpaces = input.value.includes(" ");
+    if (hasSpaces) {
+        input.setCustomValidity("Ne doit pas contenir d'espace");
+    } else {
+        input.setCustomValidity("");
+    }
+});
+```
+
+#### validationMessage
+
+La valeur de la propriété `validationMessage` correspond au message
+d'erreur d'un contrôle invalide. On peut l'utiliser dans un gestionnaire
+d'événement, par exemple, pour afficher le message associé à une erreur.
+
+```ts
+input.addEventListener("invalid", () => {
+    alert(input.validationMessage);
+});
+```
+
+Si vous affichez dynamiquement des messages d'erreur dans votre HTML,
 assurez-vous que l'élément dans lequel apparaît ces messages a
 l'attribut `aria-live="polite"`. Autrement, les utilisateur·rices qui
 utilisent des lecteurs d'écran ne seront pas notifié·es.
 
-[API validation]:
-https://developer.mozilla.org/fr/docs/Learn/Forms/Form_validation#api_de_contraintes_de_validation_html5
+```html
+<p class="error-msg" aria-live="polite"></p>
+```
