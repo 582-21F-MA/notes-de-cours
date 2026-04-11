@@ -268,8 +268,8 @@ function power(base, exponent) {
  * @returns {boolean}
  */
 function isLongEnough(password) {
-    const maxLength = 12;
-    return password.length >= maxLength;
+    const minLength = 12;
+    return password.length >= minLength;
 }
 ```
 
