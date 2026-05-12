@@ -116,15 +116,20 @@ nœuds élément :
 
 ```js
 const rootChildElements = document.documentElement.children;
-console.log(rootChildElements); // => NodeList [<head>, <body>]
+console.log(rootChildElements); // => HTMLCollection [<head>, <body>]
 ```
 
-Les objets de type `NodeList` sont similaires aux tableaux. On peut
-accéder aux éléments d'une `NodeList` avec la notation entre crochets,
-et on peut itérer sur ceux-ci avec une boucle `for..of`. Certaines
-méthodes propres aux tableaux telles que `concat` et `slice` ne sont
-toutefois pas accessibles sur les objets `NodeList`. On utilise la
-fonction `Array.from` pour convertir une `NodeList` en `Array`.
+Les objets de type `NodeList` et `HTMLCollection` sont similaires aux
+tableaux. On peut accéder à leurs éléments avec la notation entre
+crochets, et on peut itérer sur ceux-ci avec une boucle `for..of`.
+Certaines méthodes propres aux tableaux telles que `concat` et `slice`
+ne sont toutefois pas accessibles sur les objets `NodeList` et
+`HTMLCollection`. On utilise la fonction `Array.from` pour les convertir
+en `Array` :
+
+```js
+console.log(Array.from(rootChildElements)); // => [<head>, <body>]
+```
 
 ### parentNode
 
@@ -152,7 +157,7 @@ Les propriétés `firstChild` et `lastChild` d'un nœud élément pointent
 respectivement vers son premier et dernier nœud enfant :
 
 ```js
-console.log(root.firstChild); // => <header>...</header>
+console.log(root.firstChild); // => <head>...</head>
 console.log(root.lastChild); // => <body>...</body>
 ```
 
@@ -163,19 +168,20 @@ respectivement vers le nœud précédent et suivant ayant le même nœud
 parent :
 
 ```js
-console.log(document.header.nextSibling); // => <body>...</body>
-console.log(document.body.previousSibling); // => <header>...</header>
+console.log(document.head.nextSibling); // => <body>...</body>
+console.log(document.body.previousSibling); // => <head>...</head>
 ```
 
-## Chercher des nœuds
+## Chercher des éléments
 
 Quoiqu'il soit pratique de savoir traverser le DOM, on cherche souvent à
-obtenir la référence d'un nœud en particulier. Dans ce cas, il n'est pas
-conseillé d'utiliser les propriétés ci-dessus. On utilisera plutôt des
-méthodes conçues spécifiquement pour chercher un ou plusieurs nœuds.
+obtenir la référence d'un élément en particulier. Dans ce cas, il n'est
+pas conseillé d'utiliser les propriétés ci-dessus. On utilisera plutôt
+des méthodes conçues spécifiquement pour chercher un ou plusieurs
+éléments.
 
-Il existe une panoplie de méthodes pour chercher un nœud dans le DOM. On
-se concentrera ici sur deux seules : `querySelector` et
+Il existe une panoplie de méthodes pour chercher un élément dans le DOM.
+On se concentrera ici sur deux seules : `querySelector` et
 `querySelectorAll`. Libre à vous d'expérimenter avec d'autres, mais
 celles-ci sont généralement suffisantes.
 
@@ -192,8 +198,8 @@ const e3 = document.querySelector(".bar span"); // premier <span> dans le premie
 
 La méthode `querySelector` peut être appelée à partir de l'objet global
 `document` (auquel cas tout le document sera cherché), ou à partir d'un
-élément en particulier (auquel cas la recherche sera limitée aux nœuds
-enfant dudit élément) :
+élément en particulier (auquel cas la recherche sera limitée aux
+descendants dudit élément) :
 
 ```js
 const e4 = e1.querySelector("a"); // premier <a> dans e1
@@ -210,12 +216,238 @@ const bodyChildElements = document.querySelectorAll("body > *"); // tous les enf
 console.log(bodyChildElements); // => NodeList [<h1>, <p>]
 ```
 
-## Tester avec le DOM
+## Créer un élément
 
-Accéder au DOM constitue un effet de bord puisque le DOM représente un
-état _externe_ à notre programme JavaScript. Par conséquent, une
-fonction dont le corps se réfère directement à l'objet `document` ne
-peut pas être testée facilement.
+La méthode `document.createElement` permet de créer un nouvel élément.
+Elle prend en argument le nom de la balise de l'élément à créer, et
+retourne un objet du même type :
+
+```js
+const p = document.createElement("p");
+console.log(p); // => HTMLParagraphElement { ... }
+console.log(p.outerHTML); // => "<p></p>"
+```
+
+Dans le code ci-dessus, l'identifiant `p` pointe vers un objet
+`HTMLParagraphElement` qui représente un élément paragraphe. La
+propriété `outerHTML` de cet objet correspond à son balisage.
+
+## Insérer et supprimer des nœuds
+
+> [!IMPORTANT]
+> On évite d'utiliser les propriétés `innerHTML` et `outerHTML` pour
+> insérer ou supprimer des nœuds. Elles sont moins performantes que les
+> méthodes listées ci-dessous et présentent des risques de sécurité. Ces
+> propriétés peuvent être utilisées dans les tests automatisés, mais
+> jamais dans le code de production.
+
+Un élément créé avec `createElement` n'est pas automatiquement inséré
+dans le DOM. Pour qu'un élément apparaisse sur la page, on doit le
+connecter à un élément se trouvant déjà dans l'arbre. Pour ce faire, on
+utilise des méthodes telles que `prepend` et `append` qui permettent
+d'ajouter un ou plusieurs nœuds avant ou après le dernier enfant de
+l'élément sur lequel ces méthodes sont appelées :
+
+```js
+const span = document.createElement("span");
+p.append(span);
+console.log(p.outerHTML); // => "<p><span></span></p>"
+
+const i = document.createElement("i");
+p.prepend(i);
+console.log(p.outerHTML); // => "<p><i></i><span></span></p>"
+```
+
+Pour remplacer tous les nœuds enfants d'un élément, ou pour remplacer un
+élément du DOM par un autre, on utilise les méthodes `replaceChildren`
+et `replaceWith` :
+
+```js
+const a = document.createElement("a");
+p.replaceChildren(a);
+console.log(p.outerHTML); // => "<p><a></a></p>"
+
+const b = document.createElement("b");
+a.replaceWith(b);
+console.log(p.outerHTML); // => "<p><b></b></p>"
+```
+
+La méthode `remove`, quant à elle, permet de retirer un élément du DOM
+sans le remplacer par un autre :
+
+```js
+b.remove();
+console.log(p.outerHTML); // => "<p></p>"
+```
+
+> [!IMPORTANT]
+> Toutes ces méthodes sont des fonctions de mutation. On ne doit pas les
+> invoquer sur des arguments.
+
+Les méthodes `append`, `prepend`, `replaceWith` et `replaceChildren`
+sont des fonctions dite **variadiques** qui ont un nombre _variable_ de
+paramètres. On peut les appeler avec un argument, deux arguments, trois
+arguments, etc.
+
+```js
+p.replaceChildren(i, a, b);
+console.log(p.outerHTML); // => "<p><i></i><a></a><b></b></p>"
+```
+
+Ceci est particulièrement utile lorsqu'on veut insérer tous les éléments
+d'une collection dans un autre élément. Considérons par exemple un
+tableau qui contient les éléments `i`, `a` et `b` :
+
+```js
+const elements = [i, a, b];
+```
+
+Plutôt que d'itérer sur ce tableau, on peut utiliser la
+[syntaxe de décomposition] pour insérer ses éléments d'un coup :
+
+```js
+const div = document.createElement("div");
+div.append(...elements);
+console.log(div.outerHTML); // => "<div><i></i><a></a><b></b></div>"
+```
+
+Dans le code ci-dessus, `...` décompose (_spread_, en anglais) le
+tableau `elements` en trois arguments. Voici comment l'expression
+`div.append(...elements)` est évaluée étape par étape :
+
+```
+div.append(...elements)
+div.append(...[i, a, b])
+div.append(i, a, b)
+```
+
+Notez comment `...` « efface » en quelque sorte les crochets du tableau
+afin de passer directement ses éléments en argument.
+
+[syntaxe de décomposition]: https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Operators/Spread_syntax
+
+## Modifier un élément
+
+> [!IMPORTANT]
+> Modifier un élément nécessite de muter l'objet qui le représente. On
+> ne doit donc pas modifier un élément reçu en argument.
+
+En HTML, on configure le comportement d'un élément grâce à ses
+**attributs**. Un contrôle `input`, par exemple, prend différentes
+formes selon la valeur de son attribut `type` : `email`, `date`,
+`password`, etc. Pareillement, l'attribut `required` rendra le contrôle
+obligatoire pour soumettre le formulaire dans lequel il se trouve.
+
+```html
+<input type="email" required>
+```
+
+En JavaScript, le comportement d'un nœud est configuré grâce à ses
+**propriétés**, lesquelles miroitent généralement les attributs de
+l'élément :
+
+```js
+const input = document.createElement("input");
+input.type = "email";
+input.required = true;
+console.log(input.outerHTML); // '<input type="email" required="">'
+```
+
+Ces deux blocs de code (le premier en HTML, le deuxième en JavaScript)
+produisent ainsi le même élément dans le DOM.
+
+### Style
+
+> [!IMPORTANT]
+> On utilise JavaScript pour définir la valeur d'une propriété de style
+> en dernier recours. À moins que la valeur doive être calculée
+> dynamiquement, JavaScript devrait plutôt servir à ajouter ou supprimer
+> une classe CSS.
+
+En HTML, l'attribut `style` d'un élément permet de définir des règles
+CSS de mise en forme qui s'appliquent seulement sur celui-ci :
+
+```html
+<p style="color: red">Je serai de couleur rouge.</p>
+```
+
+En JavaScript, la valeur de la propriété `style` est un objet de type
+`CSSStyleDeclaration` qui contient une liste des propriétés de style
+pour l'élément en question :
+
+```js
+const p = document.createElement("p");
+p.style.color = "red";
+console.log(p.outerHTML); // '<p style="color: red"></p>'
+```
+
+Ces propriétés de style portent généralement le même nom que leur
+contrepartie CSS, à l'exception des propriétés contenant un trait
+d'union. Ainsi, la propriété CSS `color` se nomme `color`, mais
+`background-color` se traduit en JavaScript par `backgroundColor` :
+
+```js
+p.style.backgroundColor = "blue";
+console.log(p.outerHTML); // '<p style="color: red; background-color: blue;"></p>'
+```
+
+### Classes
+
+La propriété `classList` représente les classes CSS d'un élément HTML.
+La valeur de `classList` est un objet de type `DOMTokenList` ayant
+plusieurs propriétés pour manipuler la ou les classes de l'élément en
+question.
+
+Les méthodes `add` et `remove`, par exemple, permettent respectivement
+d'ajouter ou de supprimer une ou plusieurs classes données :
+
+```js
+const h1 = document.createElement("h1");
+h1.classList.add("foo", "bar");
+console.log(h1.outerHTML); // => '<h1 class="foo bar"></h1>'
+
+h1.classList.remove("foo");
+console.log(h1.outerHTML); // => '<h1 class="bar"></h1>'
+```
+
+Les méthodes `toggle` et `replace` sont également très utiles. Elles
+permettent respectivement de basculer une classe donnée, et de remplacer
+une classe par une autre :
+
+```js
+const h2 = document.createElement("h2");
+
+h2.classList.toggle("foo");
+console.log(h2.outerHTML); // '<h2 class="foo"></h2>'
+
+h2.classList.toggle("foo");
+console.log(h2.outerHTML); // '<h2 class=""></h2>'
+
+h2.classList.add("foo");
+console.log(h2.outerHTML); // '<h2 class="foo"></h2>'
+h2.classList.replace("foo", "bar");
+console.log(h2.outerHTML); // '<h2 class="bar"></h2>'
+```
+
+### Contenu texte
+
+La propriété `textContent` d'un élément HTML permet de consulter et de
+modifier le contenu texte de celui-ci :
+
+```js
+const span = document.createElement("span");
+span.textContent = "exemple";
+console.log(span.outerHTML); // '<span>exemple</span>'
+console.log(span.textContent); // exemple
+```
+
+## Effets de bord
+
+Chercher un ou plusieurs éléments avec `document.querySelector` et
+`document.querySelectorAll` constitue un effet de bord puisque le DOM
+représente un état _externe_ à notre programme JavaScript. Par
+conséquent, une fonction auxiliaire dont le corps contient ces
+expressions ne peut pas être testée facilement.
 
 La fonction `hasP` ci-dessous, par exemple, détermine si le document
 HTML contient un élément paragraphe :
@@ -235,8 +467,10 @@ résultat pour les mêmes arguments. On ne peut pas valider son
 fonctionnement à l'aide de tests automatisés puisque sa valeur de retour
 dépend du document HTML qui invoque le script.
 
-Pour cette raison, si votre fonction doit accéder au DOM, mieux vaut lui
-passer un nœud en argument :
+Pour cette raison, les méthodes `document.querySelector` et
+`document.querySelectorAll` devraient seulement être invoquées dans la
+fonction `main` de votre programme. Si une fonction auxiliaire doit
+accéder au DOM, mieux vaut lui passer un nœud en argument :
 
 ```js
 /**
@@ -258,10 +492,82 @@ test("should return true if parent has a paragraph child", () => {
 ```
 
 Cette deuxième version de `hasP` prend un nœud élément en argument, ce
-qui nous permet de tester la fonction avec un nœud qui n'a pas d'enfant
-paragraphe, et un nœud qui en a un. Le résultat de ces tests dépend
-seulement de la valeur de `parent`.
+qui nous permet de tester la fonction avec un élément qui n'a pas de
+descendant paragraphe, et un autre élément qui en a un. Le résultat de
+ces tests dépend seulement de la valeur de `parent`.
 
-La fonction `test` sert à regrouper le code pour un cas de test. Elle
-prend deux arguments : une chaîne qui décrit le résultat attendu, et une
-fonction de rappel.
+> [!NOTE]
+> La fonction `test` sert à regrouper le code pour un **cas de test**.
+> Elle prend deux arguments : une chaîne qui décrit le résultat attendu,
+> et une fonction de rappel. Un cas de test peut inclure plusieurs
+> `expect`, mais ils doivent tous valider le même comportement.
+
+Pareillement, une fonction auxiliaire ne devrait jamais insérer des
+éléments dans le DOM. Considérons par exemple le code suivant :
+
+```js
+/**
+ * Creates and append an list item with the given name.
+ * @param {string} name
+ */
+function createLI(name) {
+    const li = document.createElement("li");
+    li.textContent = name;
+    const ul = document.querySelector("ul");
+    ul.append(li);
+}
+
+createLI("foo");
+```
+
+Il est difficile d'écrire un test automatisé pour cette fonction car
+elle ne retourne aucune valeur ; son résultat apparaît directement dans
+le DOM. De plus, elle ne peut pas être utilisée avec différentes listes.
+
+Lorsque vous concevez une fonction qui crée un ou plusieurs éléments,
+retournez toujours ces éléments plutôt que de les insérer directement
+dans le DOM. Voici une meilleure version de `createLI` :
+
+```js
+/**
+ * Creates a list item with the given name.
+ * @param {string} name
+ * @returns {HTMLLIElement}
+ */
+function createLI(name) {
+    const li = document.createElement("li");
+    li.textContent = name;
+    return li;
+}
+
+expect(createLI("foo").outerHTML).toBe("<li>foo</li>");
+expect(createLI("bar").outerHTML).toBe("<li>bar</li>");
+```
+
+Non seulement cette version peut-être testée, mais elle peut maintenant
+être utilisée par d'autres fonctions auxiliaires. Voici par exemple une
+autre fonction qui invoque `createLI` pour créer une liste à partir d'un
+tableau de chaînes :
+
+```js
+/**
+ * Creates an unordered list with the given items.
+ * @param {Array<string>} items
+ * @returns {HTMLUListElement}
+ */
+function createUL(items) {
+    const ul = document.createElement("ul");
+    const lis = items.map(createLI);
+    ul.append(...lis);
+    return ul;
+}
+
+expect(createUL(["foo"]).outerHTML)
+    .toBe("<ul><li>foo</li></ul>");
+expect(createUL(["foo", "bar"]).outerHTML)
+    .toBe("<ul><li>foo</li><li>bar</li></ul>");
+```
+
+En résumé, lorsque vous concevez une fonction qui crée un ou plusieurs
+éléments, prenez toujours le contenu en argument, et produisez les
+éléments comme valeur de retour.
